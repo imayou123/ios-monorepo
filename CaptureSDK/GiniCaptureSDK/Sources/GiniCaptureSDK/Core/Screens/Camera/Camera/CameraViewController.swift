@@ -92,6 +92,7 @@ final class CameraViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+        AnalyticsManager.trackScreenShown(screenName: "camera")
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -285,6 +286,7 @@ final class CameraViewController: UIViewController {
         cameraPane.setupAuthorization(isHidden: false)
         configureLeftButtons()
         cameraButtonsViewModel.captureAction = { [weak self] in
+            AnalyticsManager.track(event: "capture_tapped", screenName: "camera")
             self?.cameraPane.toggleCaptureButtonActivation(state: false)
             self?.cameraPreviewViewController.captureImage { [weak self] data, error in
                 guard let self = self else { return }

@@ -349,6 +349,8 @@ extension ReviewViewController {
         addConstraints()
         configureBottomNavigationBar()
         addLoadingView()
+
+        AnalyticsManager.trackScreenShown(screenName: "review")
     }
 
     public override func viewDidAppear(_ animated: Bool) {
@@ -542,6 +544,7 @@ extension ReviewViewController {
 
     @objc
     private func didTapProcessDocument() {
+        AnalyticsManager.track(event: "process_tapped", screenName: "review")
         delegate?.reviewDidTapProcess(self)
     }
 

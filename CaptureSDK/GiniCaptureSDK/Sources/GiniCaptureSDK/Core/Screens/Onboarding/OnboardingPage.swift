@@ -11,11 +11,13 @@ import Foundation
  `OnboardingPage` represents the onboarding page with all it's properties.
  */
 
-public struct OnboardingPage {
+public struct OnboardingPage: OnboardingPageAnalytics {
     let imageName: String
     let title: String
     let description: String
 
+    var analyticsScreenName: String?
+    
     /**
      *  Creates an `OnboardingPage` instance.
      *
@@ -29,4 +31,8 @@ public struct OnboardingPage {
         self.title = title
         self.description = description
     }
+}
+
+protocol OnboardingPageAnalytics {
+    var analyticsScreenName: String? { get }
 }
