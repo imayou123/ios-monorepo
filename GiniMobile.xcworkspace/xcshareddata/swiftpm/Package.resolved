@@ -20,6 +20,15 @@
         }
       },
       {
+        "package": "experiment-ios-client",
+        "repositoryURL": "https://github.com/amplitude/experiment-ios-client",
+        "state": {
+          "branch": null,
+          "revision": "38031f354e1663535d3e0d8cd8a772af2affce51",
+          "version": "1.13.1"
+        }
+      },
+      {
         "package": "Lottie",
         "repositoryURL": "https://github.com/airbnb/lottie-ios.git",
         "state": {
