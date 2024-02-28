@@ -4,7 +4,7 @@
 //  Copyright © 2024 Gini GmbH. All rights reserved.
 //
 
-import Amplitude
+import AmplitudeSwift
 import UIKit
 
 private let amplitudeKey = "22801da20bf476f5b4ecd4b86e717cb2"
@@ -12,20 +12,20 @@ private let amplitudeKey = "22801da20bf476f5b4ecd4b86e717cb2"
 class AnalyticsManager {
     static var adjustProperties: [AnalyticsProperty]?
     
-//    static let amplitude = Amplitude(configuration: Configuration(apiKey: "22801da20bf476f5b4ecd4b86e717cb2",
-//                                                                  defaultTracking: DefaultTrackingOptions(
-//                                                                    sessions: true,
-//                                                                    appLifecycles: false,
-//                                                                    screenViews: false
-//                                                                  )))
+    static let amplitude = Amplitude(configuration: Configuration(apiKey: "22801da20bf476f5b4ecd4b86e717cb2",
+                                                                  defaultTracking: DefaultTrackingOptions(
+                                                                    sessions: true,
+                                                                    appLifecycles: false,
+                                                                    screenViews: false
+                                                                  )))
 
     static func initializeAnalytics() {
-        Amplitude.instance().initializeApiKey(amplitudeKey)
+//        Amplitude.instance().initializeApiKey(amplitudeKey)
 
         let deviceID = UIDevice.current.identifierForVendor?.uuidString
 
-        Amplitude.instance().setDeviceId(deviceID ?? "")
-//        amplitude.setDeviceId(deviceId: deviceID ?? "")
+//        Amplitude.instance().setDeviceId(deviceID ?? "")
+        amplitude.setDeviceId(deviceId: deviceID ?? "")
     }
 
     static func trackScreenShown(screenName: String,
@@ -51,8 +51,8 @@ class AnalyticsManager {
         }
 
         let properties = commonProperties
-//        amplitude.track(eventType: event, properties)
-        Amplitude.instance().logEvent(event, withEventProperties: properties)
+        amplitude.track(eventType: event, eventProperties: properties)
+//        Amplitude.instance().logEvent(event, withEventProperties: properties)
     }
 
 }
