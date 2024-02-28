@@ -50,7 +50,6 @@ public final class CameraButtonsViewModel {
     }
 
     @objc func cancelPressed() {
-        AnalyticsManager.track(event: "close_tapped", screenName: "camera")
         cancelAction?()
     }
 
