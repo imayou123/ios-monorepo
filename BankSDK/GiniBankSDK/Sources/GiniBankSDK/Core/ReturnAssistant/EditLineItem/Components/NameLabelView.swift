@@ -7,6 +7,7 @@
 
 import GiniCaptureSDK
 import UIKit
+import Combine
 
 protocol NameLabelViewDelegate: AnyObject {
     func nameLabelViewTextFieldDidChange(on: NameLabelView)
@@ -15,6 +16,7 @@ protocol NameLabelViewDelegate: AnyObject {
 final class NameLabelView: UIView {
     private lazy var configuration = GiniBankConfiguration.shared
     weak var delegate: NameLabelViewDelegate?
+    private var cancellables = Set<AnyCancellable>()
 
     var text: String? {
         get {
@@ -43,7 +45,6 @@ final class NameLabelView: UIView {
         textField.font = configuration.textStyleFonts[.body]
         textField.textColor = GiniColor(light: .GiniBank.dark1, dark: .GiniBank.light1).uiColor()
         textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.delegate = self
         textField.adjustsFontForContentSizeCategory = true
         return textField
     }()
@@ -65,7 +66,19 @@ final class NameLabelView: UIView {
         addSubview(titleLabel)
         addSubview(nameTextField)
 
-        self.nameTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        let textFieldPublisher = NotificationCenter.default
+            .publisher(for: UITextField.textDidChangeNotification, object: nameTextField)
+            .map {
+                ($0.object as? UITextField)?.text
+            }
+
+        textFieldPublisher
+            .receive(on: RunLoop.main)
+            .sink(receiveValue: { [weak self] _ in
+                guard let self = self else { return }
+                self.delegate?.nameLabelViewTextFieldDidChange(on: self)
+            })
+            .store(in: &cancellables)
     }
 
     private func setupConstraints() {
@@ -81,19 +94,8 @@ final class NameLabelView: UIView {
             nameTextField.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Constants.padding)
         ])
     }
-
-    @objc private func textFieldDidChange(_ textField: UITextField) {
-        delegate?.nameLabelViewTextFieldDidChange(on: self)
-    }
 }
 
-// MARK: - UITextFieldDelegate
-extension NameLabelView: UITextFieldDelegate {
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
-    }
-}
 
 private extension NameLabelView {
     enum Constants {
