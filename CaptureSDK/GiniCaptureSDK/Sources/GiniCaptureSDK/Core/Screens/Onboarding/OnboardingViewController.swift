@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Combine
 
 class OnboardingViewController: UIViewController {
     @IBOutlet weak var pagesCollection: UICollectionView!
@@ -21,6 +22,10 @@ class OnboardingViewController: UIViewController {
                                           style: .plain,
                                           target: self,
                                           action: #selector(skipTapped))
+
+    private let pageTracker = PageTracker()
+    private var cancellables = Set<AnyCancellable>()
+
     init() {
         dataSource = OnboardingDataSource(configuration: configuration)
         super.init(nibName: "OnboardingViewController", bundle: giniCaptureBundle())
@@ -37,8 +42,7 @@ class OnboardingViewController: UIViewController {
         pagesCollection.isPagingEnabled = true
         pagesCollection.showsHorizontalScrollIndicator = false
         pagesCollection.dataSource = dataSource
-        pagesCollection.delegate = dataSource
-        dataSource.delegate = self
+        pagesCollection.delegate = self
     }
 
     private func configurePageControl() {
@@ -67,6 +71,30 @@ class OnboardingViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+
+        // Subscribe to contentOffset changes
+        /* Use the debounce(for:scheduler:options:) operator to control the number of values and time between delivery of values from the upstream publisher.
+         This operator is useful to process bursty or high-volume event streams where you need to reduce the number of values delivered
+         to the downstream to a rate you specify.
+         */
+        pagesCollection?
+//            .publisher(for: \.contentOffset, options: .new)
+            .publisher(for: \.contentOffset)
+            .eraseToAnyPublisher()
+            .debounce(for: .milliseconds(100), scheduler: DispatchQueue.main) // Debounce contentOffset changes
+            .sink { [weak self] contentOffset in
+                guard let self = self else { return }
+                let page = Int(round(contentOffset.x / self.pagesCollection.bounds.width))
+
+                self.didScroll(page: page)
+            }
+            .store(in: &cancellables)
+    }
+
+    func trackEventForPage(_ pageIndex: Int) {
+        guard let nextPageScreenName = dataSource.pageModels[pageIndex].page.analyticsScreenName else { return }
+        AnalyticsManager.trackScreenShown(screenName: nextPageScreenName)
+        print("DEBUG - trackEventForPage =", nextPageScreenName)
     }
 
     private func layoutBottomNavigationBar(_ navigationBar: UIView) {
@@ -117,7 +145,7 @@ class OnboardingViewController: UIViewController {
             navigationBarBottomAdapter?.showButtons(navigationButtons: [.skip, .next], navigationBar: navigationBar)
 
             nextButton.setTitle(NSLocalizedStringPreferredFormat( "ginicapture.onboarding.next",
-                                                                  comment: "Next button"), 
+                                                                  comment: "Next button"),
                                 for: .normal)
 
             nextButton.addTarget(self, action: #selector(nextPage), for: .touchUpInside)
@@ -178,8 +206,12 @@ class OnboardingViewController: UIViewController {
     }
 }
 
-extension OnboardingViewController: OnboardingScreen {
+extension OnboardingViewController {
     func didScroll(page: Int) {
+        dataSource.currentPageIndex = page
+        if pagesCollection.indexPathsForVisibleItems.count == 1 && pageTracker.trackPage(page) {
+            trackEventForPage(page)
+        }
         switch page {
         case dataSource.pageModels.count - 1:
             if configuration.bottomNavigationBarEnabled,
@@ -189,9 +221,11 @@ extension OnboardingViewController: OnboardingScreen {
             } else {
                 navigationItem.rightBarButtonItem = nil
                 if nextButton != nil {
-                    nextButton.setTitle(NSLocalizedStringPreferredFormat("ginicapture.onboarding.getstarted",
-                                                                         comment: "Get Started button"), for: .normal)
-                    nextButton.accessibilityValue = NSLocalizedStringPreferredFormat("ginicapture.onboarding.getstarted",
+                    let nextButtonLocalizedString = "ginicapture.onboarding.getstarted"
+                    nextButton.setTitle(NSLocalizedStringPreferredFormat(nextButtonLocalizedString,
+                                                                         comment: "Get Started button"), 
+                                        for: .normal)
+                    nextButton.accessibilityValue = NSLocalizedStringPreferredFormat(nextButtonLocalizedString,
                                                                                      comment: "Get Started button")
                 }
             }
@@ -216,5 +250,40 @@ extension OnboardingViewController: OnboardingScreen {
 class CollectionFlowLayout: UICollectionViewFlowLayout {
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         return true
+    }
+}
+
+class PageTracker {
+    private var seenPages = Set<Int>()
+
+    func trackPage(_ pageIndex: Int) -> Bool {
+        if seenPages.contains(pageIndex) {
+            // Page already seen
+            print("DEBUG ---- Page already seen")
+            return false
+        } else {
+            // Track the page
+            print("DEBUG ---- Track the page")
+            seenPages.insert(pageIndex)
+            return true
+        }
+    }
+
+    func resetPage(_ pageIndex: Int) {
+        seenPages.remove(pageIndex)
+    }
+}
+
+extension OnboardingViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return collectionView.bounds.size
+    }
+
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        let visiblePageIndex = Int(round(scrollView.contentOffset.x / scrollView.bounds.width))
+        // adauga logica daca contentOffset a fost
+        pageTracker.resetPage(visiblePageIndex)
     }
 }

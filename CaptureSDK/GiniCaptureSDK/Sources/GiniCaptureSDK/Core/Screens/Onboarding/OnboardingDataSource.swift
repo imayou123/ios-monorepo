@@ -14,15 +14,10 @@ protocol BaseCollectionViewDataSource: UICollectionViewDelegate,
     )
 }
 
-protocol OnboardingScreen: AnyObject {
-    func didScroll(page: Int)
-}
-
 class OnboardingDataSource: NSObject, BaseCollectionViewDataSource {
 
     typealias OnboardingPageModel = (page: OnboardingPage, illustrationAdapter: OnboardingIllustrationAdapter?)
     private let giniConfiguration: GiniConfiguration
-    weak var delegate: OnboardingScreen?
     var currentPageIndex = 0
 
     lazy var pageModels: [OnboardingPageModel] = {
@@ -141,46 +136,5 @@ class OnboardingDataSource: NSObject, BaseCollectionViewDataSource {
         let index = IndexPath(row: currentPageIndex, section: 0)
         let attr = collectionView.layoutAttributesForItem(at: index)
         return attr?.frame.origin ?? CGPoint.zero
-    }
-
-    private var isInitialScroll = true
-
-    // MARK: - Display the page number in page controll of collection view Cell
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // this method is called twice when the screen is displyed for the first time
-        guard !isInitialScroll else {
-            isInitialScroll = false
-            return
-        }
-
-        let page = Int(scrollView.contentOffset.x) / Int(scrollView.frame.width)
-        currentPageIndex = page
-        delegate?.didScroll(page: page)
-    }
-
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        print("DEBUG - scrollViewDidEndDecelerating")
-        let pageWidth = scrollView.frame.size.width
-        let currentPage = Int(scrollView.contentOffset.x / pageWidth)
-
-        // Track an event for the current page
-        trackEventForPage(currentPage)
-    }
-
-    func trackEventForPage(_ page: Int) {
-        // Track your event based on the page
-        // Trigger your event tracking code here
-        if let nextPageScreenName = pageModels[page].page.analyticsScreenName {
-            AnalyticsManager.trackScreenShown(screenName: nextPageScreenName)
-            print("DEBUG - trackEventForPage =", nextPageScreenName)
-            //TODO: need to keep track of the event already sent because when the user reaches the last page can still scroll and because of the bounce we send more events
-        }
-    }
-
-    // MARK: - UICollectionViewDelegateFlowLayout
-    public func collectionView(_ collectionView: UICollectionView,
-                               layout collectionViewLayout: UICollectionViewLayout,
-                               sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return collectionView.bounds.size
     }
 }
