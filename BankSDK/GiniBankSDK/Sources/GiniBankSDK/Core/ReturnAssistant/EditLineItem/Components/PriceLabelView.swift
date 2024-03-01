@@ -7,6 +7,7 @@
 
 import GiniCaptureSDK
 import UIKit
+import Combine
 
 protocol PriceLabelViewDelegate: AnyObject {
     func showCurrencyPicker(on view: UIView)
@@ -15,6 +16,8 @@ protocol PriceLabelViewDelegate: AnyObject {
 
 final class PriceLabelView: UIView {
     private lazy var configuration = GiniBankConfiguration.shared
+
+    private var cancellables = Set<AnyCancellable>()
 
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
@@ -34,7 +37,6 @@ final class PriceLabelView: UIView {
         textField.font = configuration.textStyleFonts[.body]
         textField.textColor = GiniColor(light: .GiniBank.dark1, dark: .GiniBank.light1).uiColor()
         textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.delegate = self
         textField.keyboardType = .numberPad
         textField.adjustsFontForContentSizeCategory = true
         return textField
@@ -94,6 +96,40 @@ final class PriceLabelView: UIView {
         addSubview(titleLabel)
         addSubview(priceTextField)
         addSubview(currencyLabel)
+
+        let textFieldPublisher = NotificationCenter.default
+            .publisher(for: UITextField.textDidChangeNotification, object: priceTextField)
+            .map {
+                ($0.object as? UITextField)?.text
+            }
+
+        textFieldPublisher
+            .receive(on: RunLoop.main)
+            .sink(receiveValue: { [weak self] _ in
+                guard let self = self else { return }
+                self.handleTextChange(priceTextField)
+            })
+            .store(in: &cancellables)
+    }
+
+    private func handleTextChange(_ textField: UITextField) {
+        guard let text = textField.text else { return }
+
+        // Limit length to 7 digits
+        let onlyDigits = String(text
+            .trimmingCharacters(in: .whitespaces)
+            .filter { $0 != "," && $0 != "."}
+            .prefix(7))
+
+        if let decimal = Decimal(string: onlyDigits) {
+            let decimalWithFraction = decimal / 100
+
+            if let newAmount = Price.stringWithoutSymbol(from: decimalWithFraction)?
+                .trimmingCharacters(in: .whitespaces) {
+                textField.text = newAmount
+                delegate?.priceLabelViewTextFieldDidChange(on: self)
+            }
+        }
     }
 
     @objc
@@ -124,51 +160,6 @@ final class PriceLabelView: UIView {
         formatter.numberStyle = .decimal
         formatter.currencySymbol = ""
         return formatter.number(from: priceString)?.decimalValue
-    }
-}
-
-// MARK: - UITextFieldDelegate
-extension PriceLabelView: UITextFieldDelegate {
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
-    }
-
-    func textField(_ textField: UITextField,
-                   shouldChangeCharactersIn range: NSRange,
-                   replacementString string: String) -> Bool {
-
-        if let text = textField.text, let textRange = Range(range, in: text) {
-            let updatedText = text.replacingCharacters(in: textRange, with: string)
-
-            // Limit length to 7 digits
-            let onlyDigits = String(updatedText
-                .trimmingCharacters(in: .whitespaces)
-                .filter { c in c != "," && c != "."}
-                .prefix(7))
-
-            if let decimal = Decimal(string: onlyDigits) {
-                let decimalWithFraction = decimal / 100
-
-                if let newAmount = Price.stringWithoutSymbol(from: decimalWithFraction)?
-                                        .trimmingCharacters(in: .whitespaces) {
-                    // Save the selected text range to restore the cursor position after replacing the text
-                    let selectedRange = textField.selectedTextRange
-
-                    textField.text = newAmount
-
-                    delegate?.priceLabelViewTextFieldDidChange(on: self)
-                    // Move the cursor position after the inserted character
-                    if let selectedRange = selectedRange {
-                        let countDelta = newAmount.count - text.count
-                        let offset = countDelta == 0 ? 1 : countDelta
-                        textField.moveSelectedTextRange(from: selectedRange.start, to: offset)
-                    }
-                }
-            }
-            return false
-        }
-        return true
     }
 }
 
