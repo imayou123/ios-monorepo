@@ -14,8 +14,14 @@ final class InvoiceTableViewCell: UITableViewCell {
     var cellViewModel: InvoiceTableViewCellModel? {
         didSet {
             recipientLabel.text = cellViewModel?.recipientNameText
+            recipientLabel.accessibilityValue = cellViewModel?.recipientNameText
+            recipientLabel.isAccessibilityElement = true
             dueDateLabel.text = cellViewModel?.dueDateText
+            dueDateLabel.accessibilityValue = cellViewModel?.dueDateText
+            dueDateLabel.isAccessibilityElement = true
             amountLabel.text = cellViewModel?.amountToPayText
+            amountLabel.accessibilityValue = cellViewModel?.amountToPayText
+            amountLabel.isAccessibilityElement = true
             
             recipientLabel.isHidden = cellViewModel?.isRecipientLabelHidden ?? false
             dueDateLabel.isHidden = cellViewModel?.isDueDataLabelHidden ?? false
@@ -34,6 +40,8 @@ final class InvoiceTableViewCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
+        self.isAccessibilityElement = false
+        mainStackView.isAccessibilityElement = false
     }
     
     override func prepareForReuse() {

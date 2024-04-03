@@ -19,6 +19,7 @@ final class PoweredByGiniView: UIView {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.frame = CGRect(x: 0, y: 0, width: .min, height: 22)
+        view.isAccessibilityElement = false
         return view
     }()
     
@@ -30,6 +31,7 @@ final class PoweredByGiniView: UIView {
         label.font = viewModel.poweredByGiniLabelFont
         label.numberOfLines = 1
         label.adjustsFontSizeToFitWidth = true
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -38,6 +40,7 @@ final class PoweredByGiniView: UIView {
         let imageView = UIImageView(image: image)
         imageView.frame = CGRect(x: 0, y: 0, width: 28, height: 18)
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isAccessibilityElement = false
         return imageView
     }()
     

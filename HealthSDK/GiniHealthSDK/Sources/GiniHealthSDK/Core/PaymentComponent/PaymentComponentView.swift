@@ -21,6 +21,7 @@ final class PaymentComponentView: UIView {
         stackView.axis = .vertical
         stackView.distribution = .fillProportionally
         stackView.spacing = Constants.contentStackViewSpacing
+        stackView.isAccessibilityElement = false
         return stackView
     }()
     
@@ -29,6 +30,7 @@ final class PaymentComponentView: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .horizontal
         stackView.distribution = .fillProportionally
+        stackView.isAccessibilityElement = false
         return stackView
     }()
     
@@ -44,6 +46,7 @@ final class PaymentComponentView: UIView {
         label.font = viewModel.moreInformationLabelFont
         label.numberOfLines = 0
         label.text = viewModel.moreInformationLabelText
+        label.accessibilityValue = viewModel.moreInformationLabelText
         
         let moreInformationActionableAttributtedString = NSMutableAttributedString(string: viewModel.moreInformationLabelText)
         let moreInformationPartString = (viewModel.moreInformationLabelText as NSString).range(of: viewModel.moreInformationActionablePartText)
@@ -70,8 +73,9 @@ final class PaymentComponentView: UIView {
     private lazy var moreInformationButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        let image = UIImageNamedPreferred(named: viewModel.moreInformationIconName)
+        let image =     UIImageNamedPreferred(named: viewModel.moreInformationIconName)
         button.setImage(image, for: .normal)
+        button.accessibilityLabel = viewModel.moreInformationActionablePartText
         button.tintColor = viewModel.moreInformationAccentColor
         button.addTarget(self, action: #selector(tapOnMoreInformationButtonAction), for: .touchUpInside)
         return button
@@ -81,6 +85,7 @@ final class PaymentComponentView: UIView {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.frame = CGRect(x: 0, y: 0, width: .greatestFiniteMagnitude, height: Constants.bankViewHeight)
+        view.isAccessibilityElement = false
         return view
     }()
     
@@ -88,6 +93,8 @@ final class PaymentComponentView: UIView {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = viewModel.selectYourBankLabelText
+        label.accessibilityValue = viewModel.selectYourBankLabelText
+        label.isAccessibilityElement = true
         label.textColor = viewModel.selectYourBankAccentColor
         label.font = viewModel.selectYourBankLabelFont
         label.numberOfLines = 0
@@ -105,6 +112,8 @@ final class PaymentComponentView: UIView {
                                rightImageTintColor: viewModel.chevronDownIconColor,
                                isPaymentProviderInstalled: viewModel.isPaymentProviderInstalled,
                                notInstalledTextColor: viewModel.notInstalledBankTextColor)
+        button.accessibilityValue = viewModel.bankNameLabelText
+        button.isAccessibilityElement = true
         return button
     }()
     
@@ -116,12 +125,15 @@ final class PaymentComponentView: UIView {
         button.customConfigure(paymentProviderColors: viewModel.paymentProviderColors, 
                                isPaymentProviderInstalled: viewModel.isPaymentProviderInstalled,
                                text: viewModel.payInvoiceLabelText)
+        button.accessibilityValue = viewModel.payInvoiceLabelText
+        button.isAccessibilityElement = true
         return button
     }()
     
     private lazy var poweredByGiniView: PoweredByGiniView = {
         let view = PoweredByGiniView()
         view.viewModel = PoweredByGiniViewModel()
+        view.isAccessibilityElement = false
         return view
     }()
 
