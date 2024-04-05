@@ -125,6 +125,7 @@ extension PaymentSecondaryButton {
             rightImageView.isHidden = true
         }
         titleLabel.text = labelText
+        titleLabel.adjustsFontForContentSizeCategory = true
         if !isPaymentProviderInstalled {
             titleLabel.textColor = notInstalledTextColor
         }

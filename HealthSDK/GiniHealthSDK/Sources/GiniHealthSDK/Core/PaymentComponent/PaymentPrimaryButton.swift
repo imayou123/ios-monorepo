@@ -93,6 +93,7 @@ extension PaymentPrimaryButton {
         contentView.isUserInteractionEnabled = isPaymentProviderInstalled
         
         titleLabel.text = text
+        titleLabel.adjustsFontForContentSizeCategory = true
         if let textHexColor = paymentProviderColors?.text.toColor() {
             titleLabel.textColor = textHexColor
         }

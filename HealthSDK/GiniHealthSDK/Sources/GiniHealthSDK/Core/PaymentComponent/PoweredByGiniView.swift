@@ -27,8 +27,10 @@ final class PoweredByGiniView: UIView {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = viewModel.poweredByGiniLabelText
+        label.textAlignment = .right
         label.textColor = viewModel.poweredByGiniLabelAccentColor
         label.font = viewModel.poweredByGiniLabelFont
+        label.adjustsFontForContentSizeCategory = true
         label.numberOfLines = 1
         label.adjustsFontSizeToFitWidth = true
         label.isAccessibilityElement = false

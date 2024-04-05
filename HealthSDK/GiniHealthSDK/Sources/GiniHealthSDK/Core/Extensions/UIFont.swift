@@ -8,7 +8,6 @@
 import UIKit
 
 extension UIFont.TextStyle {
-    public static let headline1: UIFont.TextStyle = .init(rawValue: "kHeadline1")
     public static let headline2: UIFont.TextStyle = .init(rawValue: "kHeadline2")
     public static let headline3: UIFont.TextStyle = .init(rawValue: "kHeadline3")
     public static let linkBold: UIFont.TextStyle = .init(rawValue: "kLinkBold")
@@ -18,6 +17,4 @@ extension UIFont.TextStyle {
     public static let button: UIFont.TextStyle = .init(rawValue: "kButton")
     public static let body1: UIFont.TextStyle = .init(rawValue: "kBody1")
     public static let body2: UIFont.TextStyle = .init(rawValue: "kBody2")
-    public static let caption1: UIFont.TextStyle = .init(rawValue: "kCaption1")
-    public static let caption2: UIFont.TextStyle = .init(rawValue: "kCaption2")
 }
